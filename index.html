@@ -88,9 +88,8 @@
             box-sizing: border-box;
         }
 
-        /* تغيير شكل القائمة المنسدلة */
         select {
-            width: 30%; /* تصغير عرض القائمة المنسدلة إلى 20% */
+            width: 30%;
             padding: -10px;
             margin-bottom: 15px;
             margin-right: 100%;
@@ -99,7 +98,7 @@
             font-size: 16px;
             transition: border-color 0.3s, box-shadow 0.3s;
             box-sizing: border-box;
-            max-width: 80px; /* تعيين الحد الأقصى للعرض */
+            max-width: 80px;
         }
 
         input[type="text"]:focus, select:focus {
@@ -176,18 +175,18 @@
     <div class="container">
         <h2>Google News To RSS</h2>
         <select id="languageSelect">
-            <option value="ar" selected>عربية</option>
-            <option value="en">إنجليزية </option>
-            <option value="fr">فرنسية</option>
-            <option value="es">إسبانية</option>
-            <option value="de">ألمانية</option>
-            <option value="pt">برتغالية</option>
-            <option value="it">إيطالية</option>
-            <option value="ru">روسية</option>
-            <option value="zh">صينية</option>
+            <option value="ar" selected>Arabic</option>
+            <option value="en">English</option>
+            <option value="fr">French</option>
+            <option value="es">Spanish</option>
+            <option value="de">German</option>
+            <option value="pt">Portuguese</option>
+            <option value="it">Italian</option>
+            <option value="ru">Russian</option>
+            <option value="zh">Chinese</option>
         </select>
-        <input type="text" id="newsUrl" placeholder="أدخل رابط أخبار جوجل">
-        <button id="checkButton">تحقق</button>
+        <input type="text" id="newsUrl" placeholder="Enter Google News URL">
+        <button id="checkButton">Check</button>
     </div>
     <div class="social-icons">
         <a href="https://www.youtube.com/@meliontech" target="_blank" class="youtube">
@@ -207,27 +206,31 @@
     let originalUrl = document.getElementById('newsUrl').value.trim();
     const selectedLang = document.getElementById('languageSelect').value;
 
-    button.textContent = 'جار التحقق...';
+    button.textContent = 'Checking...';
     button.disabled = true;
 
     let modifiedUrl;
 
-    // إضافة "https://" إذا كان الرابط لا يحتوي على "http" أو "https"
+    // Add "https://" if the URL does not contain "http" or "https"
     if (!/^https?:\/\//i.test(originalUrl)) {
         originalUrl = 'https://' + originalUrl;
     }
 
-    // إزالة أي معلمات تتعلق باللغة
+    // Remove any language-related parameters
     originalUrl = originalUrl.replace(/([&?]hl=[^&]*)|([&?]gl=[^&]*)|([&?]ceid=[^&]*)/g, '');
 
-    // Home URLs مع أو بدون /
-    if (/^https?:\/\/news\.google\.com\/?(foryou|topstories)?(\?.+)?$/.test(originalUrl)) {
-        modifiedUrl = `https://news.google.com/rss?hl=${selectedLang}`; // إضافة اللغة هنا
+    // Add support for "https://news.google.com/home"
+    if (/^https?:\/\/news\.google\.com\/home\/?(\?.+)?$/.test(originalUrl)) {
+        modifiedUrl = `https://news.google.com/rss?hl=${selectedLang}`; // Add language here
+    }
+    // Home URLs with or without /
+    else if (/^https?:\/\/news\.google\.com\/?(foryou|topstories)?(\?.+)?$/.test(originalUrl)) {
+        modifiedUrl = `https://news.google.com/rss?hl=${selectedLang}`; // Add language here
     }
     // Topics URLs
     else if (/^https?:\/\/news\.google\.com\/topics\/(.+)/.test(originalUrl)) {
         modifiedUrl = originalUrl.replace(/(https:\/\/news\.google\.com\/topics\/)/, 'https://news.google.com/rss/topics/');
-        modifiedUrl += `?hl=${selectedLang}`; // إضافة اللغة هنا
+        modifiedUrl += `?hl=${selectedLang}`; // Add language here
     }
     // Search URLs
     else if (/^https?:\/\/news\.google\.com\/search\?/.test(originalUrl)) {
@@ -236,12 +239,12 @@
         } else if (originalUrl.includes('for=')) {
             modifiedUrl = originalUrl.replace('https://news.google.com/search?for=', 'https://news.google.com/rss/search?q=');
         } else {
-            showError('يرجى إدخال رابط صحيح.', button);
+            showError('Please enter a valid link.', button);
             return;
         }
-        modifiedUrl += `&hl=${selectedLang}`; // إضافة اللغة هنا
+        modifiedUrl += `&hl=${selectedLang}`; // Add language here
     } else {
-        showError('يرجى إدخال رابط صحيح.', button);
+        showError('Please enter a valid link.', button);
         return;
     }
 
@@ -253,43 +256,43 @@
             return response.json();
         })
         .then(data => {
-            button.textContent = 'تحقق';
+            button.textContent = 'Check';
             button.disabled = false;
 
             if (data.status !== 'ok') {
-                showError('رابط غير صالح: ' + modifiedUrl, button);
+                showError('Invalid link: ' + modifiedUrl, button);
             } else {
-                showSuccess(data.feed.title || 'لا يوجد عنوان', modifiedUrl);
+                showSuccess(data.feed.title || 'No title', modifiedUrl);
             }
         })
         .catch(error => {
-            showError('حدث خطأ أثناء التحقق: ' + error.message, button);
+            showError('An error occurred while checking: ' + error.message, button);
         });
 });
 
 function showError(message, button) {
     Swal.fire({
         icon: 'error',
-        title: 'خطأ',
+        title: 'Error',
         text: message
     });
-    button.textContent = 'تحقق';
+    button.textContent = 'Check';
     button.disabled = false;
 }
 
 function showSuccess(title, url) {
     Swal.fire({
         icon: 'success',
-        title: 'نجاح',
+        title: 'Success',
         html: `
             <div style="background-color: red; color: white; padding: 10px; border-radius: 5px; display: flex; align-items: center;">
                 <i class="fab fa-google-news" style="margin-left: 10px; margin-right: 10px; font-size: 24px;"></i>
                 ${title}
             </div>
             <br>
-            <strong>رابط الخلاصة:</strong> <a href="${url}" target="_blank">${url}</a><br>
+            <strong>RSS Link:</strong> <a href="${url}" target="_blank">${url}</a><br>
             <button id="copyButton" class="swal2-confirm swal2-styled" style="background-color: orange; color: white; border: none; width: 150px; padding: 7px 1px; border-radius: 5px;">
-                <i class="fas fa-rss" style="margin-right: 5px; color: white;"></i> نسخ الرابط
+                <i class="fas fa-rss" style="margin-right: 5px; color: white;"></i> Copy Link
             </button>
         `,
         didOpen: () => {
@@ -297,14 +300,14 @@ function showSuccess(title, url) {
                 navigator.clipboard.writeText(url).then(() => {
                     Swal.fire({
                         icon: 'success',
-                        title: 'تم النسخ!',
-                        text: 'تم نسخ الرابط إلى الحافظة.'
+                        title: 'Copied!',
+                        text: 'The link has been copied to the clipboard.'
                     });
                 }).catch(err => {
                     Swal.fire({
                         icon: 'error',
-                        title: 'خطأ',
-                        text: 'حدث خطأ أثناء النسخ: ' + err.message
+                        title: 'Error',
+                        text: 'An error occurred while copying: ' + err.message
                     });
                 });
             });
